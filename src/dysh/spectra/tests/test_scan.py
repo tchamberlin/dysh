@@ -119,10 +119,16 @@ class TestPSScan:
         assert abs(ps_sb[0].calibrated(0).meta["TSYS"] - ta1[0].meta["TSYS"]) < 5e-16
         assert (ps_sb[0].calibrated(0).meta["EXPOSURE"] - ta1[0].meta["EXPOSURE"]) == 0.0
 
-        flux_value = ps_sb[0].calibrated(0).flux.value
-        print(f"test_blank_integrations: type of flux_value: {flux_value.dtype}")
-        print(f"test_blank_integrations: flux_value: {flux_value}")
-        raise ValueError("force test failure because I don't want to mess with the github workflow")
+        cal_flux_value = ps_sb[0].calibrated(0).flux.value
+        raw_flux_value = ta1[0].flux.value
+        print(f"test_blank_integrations: {cal_flux_value.dtype=}")
+        print(f"test_blank_integrations: {cal_flux_value=}")
+        print(f"test_blank_integrations: {raw_flux_value.dtype=}")
+        print(f"test_blank_integrations: {(cal_flux_value - raw_flux_value).dtype=}")
+        print(f"test_blank_integrations: {cal_flux_value - raw_flux_value=}")
+        # Check if the time averaged data matches that from the first integration.
+        assert np.all(abs(cal_flux_value - raw_flux_value) < 2e-19)
+        raise ValueError("force test failure to get output")
 
 
 class TestSubBeamNod:
