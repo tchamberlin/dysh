@@ -166,6 +166,15 @@ filterwarnings = [
     "ignore::DeprecationWarning"
 ]
 
+[tool.pip-tools]
+src_files = ["pyproject.toml"]
+all_extras = true
+resolver = "backtracking"
+output_file= "requirements.txt"
+no_strip_extras = true
+quiet = true
+no_emit_trusted_host = true
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
