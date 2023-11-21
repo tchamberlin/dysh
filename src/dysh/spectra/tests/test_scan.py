@@ -119,13 +119,10 @@ class TestPSScan:
         assert abs(ps_sb[0].calibrated(0).meta["TSYS"] - ta1[0].meta["TSYS"]) < 5e-16
         assert (ps_sb[0].calibrated(0).meta["EXPOSURE"] - ta1[0].meta["EXPOSURE"]) == 0.0
 
-        arr = abs(ps_sb[0].calibrated(0).flux.value - ta1[0].flux.value) < 5e-16
-        print(f"test_blank_integrations: type of arr: {arr.dtype}")
-        print(f"test_blank_integrations: arr: {arr}")
-        # Check if the time averaged data matches that from the first integration.
-        # assert np.all(abs(ps_sb[0].calibrated(0).flux.value - ta1[0].flux.value) < 2e-19)
-        # Set to 5E-16 because Windows OS tests fail below that.  Need to understand why.
-        assert np.all(arr)
+        flux_value = ps_sb[0].calibrated(0).flux.value
+        print(f"test_blank_integrations: type of flux_value: {flux_value.dtype}")
+        print(f"test_blank_integrations: flux_value: {flux_value}")
+        raise ValueError("force test failure because I don't want to mess with the github workflow")
 
 
 class TestSubBeamNod:
