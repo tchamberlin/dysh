@@ -40,6 +40,7 @@ dev = [
   "ipdb",
   "pytest",
   "pytest-cov",
+  "coverage[toml]",
   "myst-parser",
   "sphinx",
   "sphinx-autobuild",
@@ -78,7 +79,7 @@ docs-build = "sphinx-build {root}/docs/source {root}/docs/build -b html {args}"
 # run via: $ hatch run test:<script>
 [tool.hatch.envs.test.scripts]
 matrix = "pytest {args}"
-cov = "pytest --cov-report=term-missing --cov-config=pyproject.toml --cov=src/dysh --cov=tests {args}"
+cov = "pytest --cov-report=xml --cov-config=pyproject.toml --cov=src/dysh --cov=tests {args}"
 
 # Run tests across all supported version of Python
 [[tool.hatch.envs.test.matrix]]

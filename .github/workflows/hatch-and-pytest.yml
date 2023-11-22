@@ -14,7 +14,7 @@ on:
   pull_request:  # Run on all pull requests
   workflow_dispatch:  # needed for "Run" button to show up in action
 jobs:
-  build:
+  test:
     runs-on:  ${{ matrix.os }}
 
     strategy:
@@ -45,7 +45,8 @@ jobs:
         pip install -e .
     - name: Test with pytest
       run: |
-        pytest
+        pytest --cov-report=xml --cov-config=pyproject.toml --cov=src/dysh
+  coverage:
     - name: Upload coverage reports to Codecov
       uses: codecov/codecov-action@v3
       env:
