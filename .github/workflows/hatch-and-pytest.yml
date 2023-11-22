@@ -48,12 +48,13 @@ jobs:
       - name: Test with pytest
         run: |
           # Write coverage data files, namespaced using matrix info
-          coverage run -m pytest --data-file=".coverage.${{ matrix.os }}.${{ matrix.python-version }}"
+          coverage run --data-file=".coverage.${{ matrix.os }}.${{ matrix.python-version }}" -m pytest
       - name: Upload coverage data
+        # Upload only ubuntu results, since we are only running the coverage step on ubuntu
+        if: ${{ matrix.os }} == "ubuntu-latest"
         uses: actions/upload-artifact@v3
         with:
           name: coverage-data
-          # Upload only ubuntu results, since we are only running the coverage step on ubuntu
           path: ".coverage.ubuntu-latest*"
           # if-no-files-found: ignore
   coverage:
@@ -65,7 +66,7 @@ jobs:
         with:
           python-version: 3.9
           cache: pip
-      - run: python -Im pip install --upgrade coverage[toml]
+      - run: pip install --upgrade coverage[toml]
       - uses: actions/download-artifact@v3
         with:
           name: coverage-data
