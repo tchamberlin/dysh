@@ -103,7 +103,11 @@ exclude = [
 packages = ["src/dysh"]
 
 [tool.coverage.run]
+
 branch = true
+source = [
+  "src/"
+]
 parallel = true
 omit = [
   "src/dysh/__about__.py",
