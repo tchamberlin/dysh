@@ -15,7 +15,7 @@ on:
   workflow_dispatch:  # needed for "Run" button to show up in action
 jobs:
   test:
-    runs-on:  ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
 
     strategy:
       # Ensure that if even if a build in the matrix fails, the others continue
@@ -47,6 +47,7 @@ jobs:
       run: |
         pytest --cov-report=xml --cov-config=pyproject.toml --cov=src/dysh
   coverage:
+    runs-on: ubuntu-latest
     steps:
     - name: Upload coverage reports to Codecov
       uses: codecov/codecov-action@v3
