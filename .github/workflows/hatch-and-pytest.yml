@@ -49,7 +49,7 @@ jobs:
           pip install -e .
       - name: Test with pytest
         run: |
-          coverage -m pytest --cov=src/dysh
+          coverage run -m pytest --cov=src/dysh
       - name: Upload coverage data
         uses: actions/upload-artifact@v3
         with:
