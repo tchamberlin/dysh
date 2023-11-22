@@ -47,12 +47,12 @@ jobs:
           pip install -e .
       - name: Test with pytest
         run: |
-          coverage run -m pytest
+          coverage run -m pytest --data-file ".coverage.${{ matrix.os }}.${{ matrix.python-version }}"
       - name: Upload coverage data
         uses: actions/upload-artifact@v3
         with:
           name: coverage-data
-          path: ".coverage.*"
+          path: ".coverage.ubuntu-latest*"
           # if-no-files-found: ignore
   coverage:
     needs: tests
