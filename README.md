@@ -1,5 +1,5 @@
 [![Documentation Status](https://readthedocs.org/projects/dysh/badge/?version=latest)](https://dysh.readthedocs.io/en/latest/?badge=latest)
-[![pre-commit.ci status](https://results.pre-commit.ci/badge/github/tchamberlin/dysh/main.svg)](https://results.pre-commit.ci/latest/github/tchamberlin/dysh/main)
+[![pre-commit.ci status](https://results.pre-commit.ci/badge/github/GreenBankObservatory/dysh/main.svg)](https://results.pre-commit.ci/latest/github/GreenBankObservatory/dysh/main)
 
 # dysh
 
