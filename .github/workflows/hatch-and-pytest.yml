@@ -49,7 +49,7 @@ jobs:
           pip install -e .
       - name: Test with pytest
         run: |
-          pytest --cov-report=:.coverage.py$(echo ${{ matrix.python-version }} | tr -d .) --cov-config=pyproject.toml --cov=src/dysh
+          pytest --cov-report=lcov:.coverage.py$(echo ${{ matrix.python-version }} | tr -d .) --cov-config=pyproject.toml --cov=src/dysh
       - name: Upload coverage data
         uses: actions/upload-artifact@v3
         with:
