@@ -47,6 +47,7 @@ jobs:
       run: |
         pytest --cov-report=xml --cov-config=pyproject.toml --cov=src/dysh
   coverage:
+    needs: test
     runs-on: ubuntu-latest
     steps:
     - name: Upload coverage reports to Codecov
