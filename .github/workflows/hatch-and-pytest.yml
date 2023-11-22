@@ -6,11 +6,11 @@ on:
   push:
     branches:
       - "main"
-      # - "release*"
-      # - "*-devel"
-      # - "*_devel"
-      # - "*-ci"
-      # - "*_ci"
+      - "release*"
+      - "*-devel"
+      - "*_devel"
+      - "*-ci"
+      - "*_ci"
   pull_request:  # Run on all pull requests
   workflow_dispatch:  # needed for "Run" button to show up in action
 env:
@@ -26,10 +26,8 @@ jobs:
       # Ensure that if even if a build in the matrix fails, the others continue
       fail-fast: false
       matrix:
-        os: [ubuntu-latest]
-        python-version: ["3.9"]
-        # os: [ubuntu-latest, windows-latest, macos-latest]
-        # python-version: ["3.9", "3.10", "3.11", "3.12"]
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ["3.9", "3.10", "3.11", "3.12"]
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python ${{ matrix.python-version }}
@@ -85,16 +83,3 @@ jobs:
           name: html-report
           path: htmlcov
         # if: ${{ failure() }}
-  codecov:
-    needs: tests
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/download-artifact@v3
-      with:
-        name: coverage-data
-    - name: Upload coverage reports to Codecov
-      uses: codecov/codecov-action@v3
-      env:
-        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-      with:
-        fail_ci_if_error: true
