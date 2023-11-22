@@ -78,10 +78,23 @@ jobs:
           coverage report | sed 's/^/    /' >> $GITHUB_STEP_SUMMARY
 
           # Report again and fail if under 100%.
-          # python -Im coverage report --fail-under=100
+          # coverage report --fail-under=100
       - name: Upload HTML report
         uses: actions/upload-artifact@v3
         with:
           name: html-report
           path: htmlcov
         # if: ${{ failure() }}
+    coverage:
+      needs: tests
+      runs-on: ubuntu-latest
+      steps:
+      - uses: actions/download-artifact@v3
+        with:
+          name: coverage-data
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v3
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        with:
+          fail_ci_if_error: true
