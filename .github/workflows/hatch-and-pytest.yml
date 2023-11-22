@@ -51,7 +51,7 @@ jobs:
           coverage run --data-file=".coverage.${{ matrix.os }}.${{ matrix.python-version }}" -m pytest
       - name: Upload coverage data
         # Upload only ubuntu results, since we are only running the coverage step on ubuntu
-        if: ${{ matrix.os }} == 'ubuntu-latest'
+        if: matrix.os == 'ubuntu-latest'
         uses: actions/upload-artifact@v3
         with:
           name: coverage-data
