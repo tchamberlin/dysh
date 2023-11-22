@@ -3,6 +3,10 @@
 default_language_version:
   python: python3.9
 
+ci:
+    # Do not run the pip-compile hook when in CI
+    # See https://github.com/pre-commit-ci/issues/issues/133#issuecomment-1172964243
+    skip: [pip-compile]
 # See https://pre-commit.com/hooks.html for more hooks
 repos:
   - repo: 'https://github.com/pre-commit/pre-commit-hooks'
