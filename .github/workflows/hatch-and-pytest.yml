@@ -49,12 +49,12 @@ jobs:
           pip install -e .
       - name: Test with pytest
         run: |
-          pytest --cov-report=xml:.coverage.py$(echo ${{ matrix.python-version }} | tr -d .).xml --cov-config=pyproject.toml --cov=src/dysh
+          pytest --cov-report=:.coverage.py$(echo ${{ matrix.python-version }} | tr -d .) --cov-config=pyproject.toml --cov=src/dysh
       - name: Upload coverage data
         uses: actions/upload-artifact@v3
         with:
           name: coverage-data
-          path: "*coverage.*"
+          path: ".coverage.*"
           # if-no-files-found: ignore
   coverage:
     needs: tests
