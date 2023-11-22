@@ -111,6 +111,7 @@ source = [
 parallel = true
 omit = [
   "src/dysh/__about__.py",
+  "*/tests/*"
 ]
 
 [tool.coverage.report]
