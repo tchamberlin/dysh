@@ -1,10 +1,7 @@
-import pathlib
-
 import numpy as np
 import pytest
 from astropy.io import fits
 
-import dysh
 from dysh.fits import gbtfitsload
 
 

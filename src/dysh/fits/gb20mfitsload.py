@@ -16,16 +16,14 @@ class GB20MFITSLoad(SDFITSLoad):
             idx = None
         return idx
 
-    def _fix_columns(self):
+    def _fix_columns(self, bad_char="\x00"):
         """ """
-
-        bad_char = "\x00"
 
         for i in range(len(self._bintable)):
             for j in range(self._binheader[i]["NAXIS2"]):
                 text = self._bintable[i].data[j]["OBJECT"]
-                idx = self._str_idx(text, bad_char="\x00")
+                idx = self._str_idx(text, bad_char=bad_char)
                 self._bintable[i].data[j]["OBJECT"] = text[:idx]
                 text = self._bintable[i].data[j]["OBSERVER"]
-                idx = self._str_idx(text, bad_char="\x00")
+                idx = self._str_idx(text, bad_char=bad_char)
                 self._bintable[i].data[j]["OBSERVER"] = text[:idx]

@@ -6,14 +6,10 @@ import warnings
 
 import astropy.units as u
 import numpy as np
-from astropy.io import fits
-from astropy.modeling.fitting import LevMarLSQFitter, LinearLSQFitter
+from astropy.modeling.fitting import LinearLSQFitter
 from astropy.modeling.polynomial import Chebyshev1D, Hermite1D, Legendre1D, Polynomial1D
-from astropy.wcs import WCS
-from specutils import SpectralRegion, Spectrum1D
+from specutils import SpectralRegion
 from specutils.fitting import fit_continuum
-
-from ..util import uniq
 
 
 def average(data, axis=0, weights=None):
@@ -128,7 +124,7 @@ def exclude_to_region(exclude, refspec, fix_exclude=False):
                 exclude = [exclude]
             # NB: we are assuming that a SpectralAxis is always [lower...upper].  Is this true???
             for pair in exclude:
-                if type(pair[0]) == int:
+                if isinstance(pair[0], int):
                     # convert channel to spectral axis units
                     lastchan = len(sa) - 1
                     msg = f"Exclude limits {pair} are not fully within the spectral axis [0,{lastchan}]."
@@ -335,7 +331,7 @@ def mean_tsys(calon, caloff, tcal, mode=0, fedge=10, nedge=None):
     """
     # @todo Pedro thinks about a version that takes a spectrum with multiple SpectralRegions to exclude.
     nchan = len(calon)
-    if nedge == None:
+    if nedge is None:
         nedge = nchan // fedge  # 10 %
     # Python uses exclusive array ranges while GBTIDL uses inclusive ones.
     # Therefore we have to add a channel to the upper edge of the range
