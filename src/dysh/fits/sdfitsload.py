@@ -2,7 +2,6 @@
     - Not typically used directly.  Sub-class for specific telescope SDFITS flavors.
 """
 
-import copy
 import sys
 
 import astropy.units as u
@@ -654,7 +653,7 @@ class SDFITSLoad(object):
 
         """
         # ensure it is a list if int was given
-        if type(rows) == int:
+        if isinstance(rows, int):
             rows = [rows]
         outbintable = self._bintable[bintable].copy()
         # print(f"bintable copy data length {len(outbintable.data)}")

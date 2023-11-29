@@ -29,16 +29,18 @@ repos:
         args:
           - '--fix=lf'
       - id: check-case-conflict # Check for files with names that would conflict on a case-insensitive filesystem
-  - repo: https://github.com/pycqa/isort
-    rev: 5.12.0
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.1.6
     hooks:
-      - id: isort
-        exclude: '(notebooks|attic|benchmark|testdata)/.*'
-  - repo: 'https://github.com/psf/black'
-    rev: 23.11.0
-    hooks:
-      - id: black
-        exclude: '(notebooks|attic|benchmark|testdata)/.*'
+    - id: ruff-format
+      exclude: '(notebooks|attic|benchmark|testdata|gui)/.*'
+    - id: ruff
+      exclude: '(notebooks|attic|benchmark|testdata|gui)/.*'
+      alias: autoformat
+      args:
+        - '--fix'
+        - '--exit-non-zero-on-fix'
+        - '--ignore=E741,E501,PD901,F841,B007,E741,B028,F811'
   - repo: https://github.com/jazzband/pip-tools
     rev: 7.3.0
     hooks:

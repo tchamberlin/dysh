@@ -1,22 +1,16 @@
 """Load SDFITS files produced by the Green Bank Telescope"""
 
 import copy
-import os
-import sys
-import warnings
 from pathlib import Path
 
 import astropy.units as u
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from astropy.io import fits
 from astropy.units import cds
-from astropy.wcs import WCS
 
 from ..spectra.core import tsys_weight
 from ..spectra.scan import PSScan, ScanBlock, SubBeamNodScan, TPScan
-from ..spectra.spectrum import Spectrum
 from ..util import consecutive, uniq
 from .sdfitsload import SDFITSLoad
 
@@ -259,7 +253,7 @@ class GBTFITSLoad(SDFITSLoad):
         _df["RESTFREQ"] = _df["RESTFREQ"] / 1.0e9  # convert to GHz
         _df["DOPFREQ"] = _df["DOPFREQ"] / 1.0e9  # convert to GHz
         if scans is not None:
-            if type(scans) == int:
+            if isinstance(scans, int):
                 scans = [scans]
             if len(scans) == 1:
                 scans = [scans[0], scans[0]]  # or should this be [scans[0],lastscan]?
@@ -293,8 +287,8 @@ class GBTFITSLoad(SDFITSLoad):
             nPol = uf["PLNUM"].nunique()
             nfeed = uf["FEED"].nunique()
             nint = len(set(uf["DATE-OBS"]))  # see gbtidl io/line_index__define.pro
-            obj = list(set(uf["OBJECT"]))[0]  # We assume they are all the same!
-            proc = list(set(uf["PROC"]))[0]  # We assume they are all the same!
+            obj = next(iter(set(uf["OBJECT"])))  # We assume they are all the same!
+            proc = next(iter(set(uf["PROC"])))  # We assume they are all the same!
             # print(f"Uniq data for scan {s}: {nint} {nIF} {nPol} {nfeed} {obj} {proc}")
             s2 = pd.Series(
                 [obj, proc, nIF, nPol, nint, nfeed],
@@ -964,7 +958,7 @@ class GBTFITSLoad(SDFITSLoad):
         self._create_index_if_needed()
         # print(f"onoff_scan_list(scans={scans},if={ifnum},pl={plnum},bintable={bintable},fitsindex={fitsindex})")
         s = {"ON": [], "OFF": []}
-        if type(scans) == int:
+        if isinstance(scans, int):
             scans = [scans]
         df = self.index(bintable=bintable, fitsindex=fitsindex)
         if plnum is not None:
@@ -982,7 +976,7 @@ class GBTFITSLoad(SDFITSLoad):
             return s
         if lenprocset > 1:
             raise Exception(f"Found more than one PROCTYPE in the requested scans: {procset}")
-        proc = list(procset)[0]
+        proc = next(iter(procset))
         dfon = self.select("_OBSTYPE", "PSWITCHON", df)
         dfoff = self.select("_OBSTYPE", "PSWITCHOFF", df)
         onscans = uniq(list(dfon["SCAN"]))  # wouldn't set() do this too?
@@ -1076,7 +1070,7 @@ class GBTFITSLoad(SDFITSLoad):
         plnum = kwargs.get("plnum", None)
         fdnum = kwargs.get("fdnum", None)
         subref = kwargs.get("subref", None)
-        if type(scans) == int:
+        if isinstance(scans, int):
             scans = [scans]
         df = self.index(bintable=bintable, fitsindex=fitsindex)
         if scans is not None:
@@ -1127,7 +1121,7 @@ class GBTFITSLoad(SDFITSLoad):
         # keep the bintable keyword and allow iteration over bintables if requested (bintable=None)
         # print(f"onoff_rows(scans={scans},ifnum={ifnum},plnum={plnum},bintable={bintable},fitsindex={fitsindex}")
         rows = {"ON": [], "OFF": []}
-        if type(scans) is int:
+        if isinstance(scans, int):
             scans = [scans]
         scans = self.onoff_scan_list(scans, ifnum, plnum, bintable, fitsindex=fitsindex)
         # scans is now a dict of "ON" "OFF
