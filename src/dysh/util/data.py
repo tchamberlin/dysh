@@ -38,12 +38,10 @@ def get_example_data(example: str | None = None, **kwargs):
         ],
     }
 
+    examples_to_download = [example] if example else examples.keys()
     try:
         return {
-            e: download_file(urljoin(DYSH_URL, url), **kwargs)
-            for e, urls in examples.items()
-            for url in urls
-            if e == example or example is None
+            e: [download_file(urljoin(DYSH_URL, url), **kwargs) for url in examples[e]] for e in examples_to_download
         }
     except KeyError as error:
         raise KeyError(f"{example} is not available. The following are: {', '.join(examples.keys())}") from error
