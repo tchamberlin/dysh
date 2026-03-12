@@ -501,3 +501,27 @@ Outcome:
 
 Takeaway:
 - speeding up the isolated averaging kernel was not enough; changing the masked-array behavior in the real `Spectrum` construction path had larger downstream costs than the saved math time
+
+### 10.4 Lightweight internal TP refspec builder for `getsigref(ref=int)`
+
+Issue:
+- the nested `gettp(...).timeaverage()` call inside `getsigref` still looked expensive, especially for the `hi_survey` reference scans that are pure `CAL='F'`
+
+Attempt:
+- add a narrow private helper that built the internal reference `Spectrum` directly from selected raw rows and weighted averages, bypassing the generic `TPScan` path
+
+Why it looked promising:
+- `PSScan` only uses the reference object for slicing, `refspec.data`, and a few metadata fields (`EXPOSURE`, `DURATION`, `CDELT1`, `TCAL`, `TSYS`)
+- the `hi_survey` reference scans `295` and `297` are all `CAL='F'`, so the generic TP calibration path is heavier than necessary there
+
+What actually happened:
+- focused tests still passed after fixing the missing `TCAL` metadata contract
+- but performance regressed:
+  - hot `getsigref(...).timeaverage()` cProfile total moved to about `0.740s`
+  - dysh-only `hi_survey` script time moved to about `2.05s`
+
+Outcome:
+- reverted
+
+Takeaway:
+- bypassing `TPScan` looked structurally cleaner, but the direct builder still paid too much pandas/raw-row/spectrum construction overhead to beat the tuned generic path
