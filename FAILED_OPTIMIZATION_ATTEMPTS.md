@@ -210,6 +210,25 @@ Takeaway:
 - even though `Selection` table setup looks like pure overhead, skipping it during rebuild did not improve the end-to-end hot call
 - this path is not worth revisiting without more detailed substep evidence
 
+### 2.7 Batch-adding missing lazy-load columns with `pd.concat(..., axis=1)`
+
+Attempt:
+- replace the per-column `other_sdf._index[col] = ...` loop with a single `pd.concat()` that appends all missing metadata columns to each `_index` frame at once
+
+Why it looked promising:
+- direct substep timing showed `add_missing_cols` as a measurable chunk inside `_load_full_rows_if_needed()`
+- a standalone micro-benchmark suggested `pd.concat()` should be cheaper than repeated column insertion
+
+What happened:
+- targeted tests still passed
+- but the real hot `getsigref(...).timeaverage()` profile regressed badly, from about `0.263s` to about `0.538s`
+- `_load_full_rows_if_needed()`, `_rebuild_merged_index()`, and downstream pandas take/setitem costs all got much worse
+- the change was reverted
+
+Takeaway:
+- the isolated DataFrame micro-benchmark was misleading here
+- replacing repeated column insertion with `pd.concat()` inside the real lazy-load path is not a win in this codebase
+
 ## 3. Startup-Branch Ideas That Did Not Transfer Cleanly
 
 ### 3.1 Deferred IERS initialization on top of `bench`
