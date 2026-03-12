@@ -476,3 +476,28 @@ Outcome:
 Takeaway:
 - mutating `Selection` in place is still a trap, even in a narrower one-file path
 - preserving the object identity was not enough; pandas/Selection internal state still made this path slower than rebuilding
+
+### 10.3 No-mask fast path in `ScanBase.timeaverage()`
+
+Issue:
+- `np.ma.average` looked expensive in the nested TP reference and `getsigref` averaging path
+
+Attempt:
+- add a fast path in `ScanBase.timeaverage()` that used plain `numpy.average` when the calibrated data had no masks and no NaNs
+
+Why it looked promising:
+- on real `hi_survey` arrays the isolated averaging kernel was dramatically faster:
+  - TP example: about `0.50s` -> `0.13s` over 200 iterations
+  - PS example: about `4.23s` -> `0.86s` over 200 iterations
+- the numerical difference was effectively zero
+
+What actually happened:
+- the full benchmark regressed badly:
+  - hot `getsigref(...).timeaverage()` cProfile total moved from about `0.392s` to `0.820s`
+  - dysh-only `hi_survey` script time moved from about `1.28s` to `3.11s`
+
+Outcome:
+- reverted
+
+Takeaway:
+- speeding up the isolated averaging kernel was not enough; changing the masked-array behavior in the real `Spectrum` construction path had larger downstream costs than the saved math time
