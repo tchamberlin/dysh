@@ -451,3 +451,28 @@ Outcome:
 Takeaway:
 - once the outer calibration loops were vectorized, this helper was no longer the bottleneck
 - a kernel win in isolation was not enough to beat the surrounding selection/lazy-load overhead
+
+### 10.2 Updating only touched columns in `self._selection`
+
+Issue:
+- after the single-file lazy-load rebuild shortcut landed, `_load_full_rows_if_needed()` was still spending noticeable time mirroring the backing index back into `self._selection`
+
+Attempt:
+- skip `_rebuild_merged_index(rebuild_flag=False)` entirely for the one-file case
+- update only the columns touched by the current FITS row load directly on `self._selection`
+
+Why it looked promising:
+- it avoided the measured `Selection(df)` constructor cost in `_rebuild_merged_index()`
+- it was much narrower than the earlier broad in-place selection mutation attempt
+
+What actually happened:
+- correctness tests still passed, but performance collapsed:
+  - hot `getsigref(...).timeaverage()` cProfile total moved from about `0.392s` to `0.784s`
+  - dysh-only `hi_survey` script time moved from about `1.28s` to `2.81s`
+
+Outcome:
+- reverted
+
+Takeaway:
+- mutating `Selection` in place is still a trap, even in a narrower one-file path
+- preserving the object identity was not enough; pandas/Selection internal state still made this path slower than rebuilding
