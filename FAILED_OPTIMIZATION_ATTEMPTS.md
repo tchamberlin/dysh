@@ -425,3 +425,29 @@ Even the failed attempts narrowed the search space:
 - `_load_full_rows_if_needed()` and its rebuild side effects are real targets, but naive partial mutation strategies lose.
 - Some apparent hotspots, especially target/observer precompute, are not worth special-casing at the current scale.
 - Benchmark correctness and benchmark structure matter as much as raw timing when comparing against GBTIDL.
+
+## 10. Calibration Fast Paths That Did Not Pay Off
+
+### 10.1 `mean_tsys_vectorized()` no-mask/no-NaN fast path
+
+Issue:
+- after vectorizing the common `TPScan` and `PSScan` calibration loops, the stacked `mean_tsys` helper still spent a lot of time in masked-array setup
+
+Attempt:
+- add a fast path in `mean_tsys_vectorized()` that used plain `numpy.mean` when the stacked spectra had no masks and no NaNs
+
+Why it looked promising:
+- microbenchmark on real `hi_survey` TP reference data improved from about `0.182s` to `0.080s` over 200 iterations with identical output
+
+What actually happened:
+- the real hot call regressed slightly:
+  - `getsigref(...).timeaverage()` cProfile total moved from about `0.522s` to `0.551s`
+- the dysh-only `hi_survey` benchmark also regressed slightly:
+  - script time moved from about `1.74s` to `1.76s`
+
+Outcome:
+- reverted
+
+Takeaway:
+- once the outer calibration loops were vectorized, this helper was no longer the bottleneck
+- a kernel win in isolation was not enough to beat the surrounding selection/lazy-load overhead
