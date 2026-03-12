@@ -229,6 +229,25 @@ Takeaway:
 - the isolated DataFrame micro-benchmark was misleading here
 - replacing repeated column insertion with `pd.concat()` inside the real lazy-load path is not a win in this codebase
 
+### 2.8 Single-mask exact-match selection in `_simple_select_from_kwargs()`
+
+Attempt:
+- replace the chained `.loc[...]` filters in `_simple_select_from_kwargs()` with one boolean mask built across all exact-match predicates and applied once at the end
+
+Why it looked promising:
+- a standalone micro-benchmark on the real `hi_survey` query shape showed the mask version about 1.8x faster than repeated filtering
+- `_common_selection()` still appeared in the hot `getsigref` path
+
+What happened:
+- targeted `gettp` / `getsigref` tests still passed
+- but the real `getsigref` block-construction profile regressed badly
+- the dysh-only `hi_survey` warm run also regressed hard
+- the change was reverted
+
+Takeaway:
+- the isolated selection micro-benchmark did not reflect the full calibration path
+- reducing chained filters here shifted costs elsewhere and was not a real end-to-end win
+
 ## 3. Startup-Branch Ideas That Did Not Transfer Cleanly
 
 ### 3.1 Deferred IERS initialization on top of `bench`
