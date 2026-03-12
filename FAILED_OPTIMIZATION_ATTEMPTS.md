@@ -190,6 +190,26 @@ Takeaway:
 - the obvious concat cleanup did not translate into a real win on this workload
 - `_rebuild_merged_index()` is still a real cost center, but this specific rewrite is not worth keeping
 
+### 2.6 Lazy `Selection`/`Flag` table construction during merged-index rebuilds
+
+Attempt:
+- add a lazy `init_table=False` path to `Selection` / `Flag`
+- use it from `_rebuild_merged_index()` when there were no existing rules to preserve
+
+Why it looked promising:
+- `Selection.__init__()` still showed up in the hot `getsigref` path
+- most of that cost appears to be display-table setup, which the benchmark path does not use directly
+
+What happened:
+- targeted `Selection` and loader tests passed
+- `_load_full_rows_if_needed()` got a bit smaller in the profile
+- but the overall hot `getsigref(...).timeaverage()` call regressed slightly as cost shifted elsewhere
+- the change was reverted
+
+Takeaway:
+- even though `Selection` table setup looks like pure overhead, skipping it during rebuild did not improve the end-to-end hot call
+- this path is not worth revisiting without more detailed substep evidence
+
 ## 3. Startup-Branch Ideas That Did Not Transfer Cleanly
 
 ### 3.1 Deferred IERS initialization on top of `bench`
