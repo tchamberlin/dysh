@@ -413,6 +413,9 @@ def topocentric_velocity_to_frame(target, toframe, observer, obstime):
     else:
         _target = sanitize_skycoord(target)
     # raise Exception("input frame must be ICRS")
+    from dysh import _ensure_iers
+
+    _ensure_iers()
     topocoord = observer.get_itrs(obstime=obstime)
     sc = coord.SpectralCoord(1 * u.Hz, observer=topocoord, target=_target)
     sc2 = sc.with_observer_stationary_relative_to(toframe)  # noqa: F841

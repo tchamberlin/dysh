@@ -19,7 +19,6 @@ if TYPE_CHECKING:
     from numpy.typing import ArrayLike
 
 from ..log import logger
-from ..spectra.spectrum import Spectrum
 from ..util import select_from, uniq
 from ..util.timers import Benchmark
 
@@ -874,6 +873,9 @@ class SDFITSLoad:
         logger.debug(f"BUNIT = {bunit}")
         # use from_unmasked so we don't get the astropy INFO level message about replacing a mask
         # (doesn't work -- the INFO message comes from the Spectrum1D constructor)
+
+        from ..spectra.spectrum import Spectrum
+
         masked_data = Masked.from_unmasked(data.data, data.mask) * bunit
         s = Spectrum.make_spectrum(masked_data, meta, observer_location=observer_location)
         return s

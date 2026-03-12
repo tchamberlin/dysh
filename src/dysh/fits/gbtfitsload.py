@@ -1,5 +1,7 @@
 """Load SDFITS files produced by the Green Bank Telescope"""
 
+from __future__ import annotations
+
 import copy
 import inspect
 import itertools
@@ -9,6 +11,7 @@ import platform
 import time
 import warnings
 from collections.abc import Sequence
+from typing import TYPE_CHECKING
 
 try:
     from enum import StrEnum  # Requires python 3.11+
@@ -27,19 +30,6 @@ from dysh.log import logger
 
 from ..coordinates import Observatory, decode_veldef, eq2hor, hor2eq
 from ..log import HistoricalBase, log_call_to_history, log_call_to_result
-from ..spectra.core import make_channel_slice, mean_data
-from ..spectra.scan import (
-    FSScan,
-    NodScan,
-    PSScan,
-    ScanBase,
-    ScanBlock,
-    Spectrum,
-    SubBeamNodScan,
-    TPScan,
-)
-from ..spectra.tcal import TCal
-from ..spectra.vane import VaneSpectrum
 from ..util import (
     Flag,
     Selection,
@@ -61,6 +51,11 @@ from ..util.selection import Flag, Selection  # noqa: F811
 from ..util.weatherforecast import GBTWeatherForecast
 from . import conf, core
 from .sdfitsload import FITSBackend, SDFITSLoad, _log_mem
+
+if TYPE_CHECKING:
+    from ..spectra.scan import ScanBlock
+    from ..spectra.spectrum import Spectrum
+    from ..spectra.vane import VaneSpectrum
 
 try:
     import fitsio
@@ -241,12 +236,12 @@ class GBTBackend(StrEnum):
     ZPEC = "zpec"  # continuum
 
     @classmethod
-    def spectral_line_backends(cls) -> set["GBTBackend"]:
+    def spectral_line_backends(cls) -> set[GBTBackend]:
         """Return backends used for spectral line observations."""
         return {cls.VEGAS, cls.ACS, cls.SP}
 
     @classmethod
-    def from_string(cls, s: str) -> "GBTBackend | None":
+    def from_string(cls, s: str) -> GBTBackend | None:
         """Parse backend from string (case-insensitive)."""
         try:
             return cls(s.lower())
@@ -1513,6 +1508,8 @@ class GBTFITSLoad(SDFITSLoad, HistoricalBase):
         -------
             True if there's enough data left to calibrate, False if there isn't.
         """
+        from ..spectra.core import make_channel_slice
+
         # all the rows currently under consideration
         rows = []
         for k in sig:
@@ -1992,6 +1989,8 @@ class GBTFITSLoad(SDFITSLoad, HistoricalBase):
             A ScanBlock containing one or more `~dysh.spectra.scan.TPScan`
 
         """
+        from ..spectra.scan import ScanBlock, TPScan
+
         _log_mem(f"gettp: start (fdnum={fdnum}, ifnum={ifnum}, plnum={plnum})")
         _channel = self._normalize_channel_range(channel)
         (scans, _sf) = self._common_selection(fdnum=fdnum, ifnum=ifnum, plnum=plnum, apply_flags=apply_flags, **kwargs)
@@ -2209,6 +2208,9 @@ class GBTFITSLoad(SDFITSLoad, HistoricalBase):
             ScanBlock containing one or more `~dysh.spectra.scan.PSScan`.
 
         """
+        from ..spectra.scan import PSScan, ScanBase, ScanBlock
+        from ..spectra.spectrum import Spectrum
+
         _log_mem(
             f"getsigref: start (fdnum={fdnum}, ifnum={ifnum}, plnum={plnum}, scan count={len(scan) if hasattr(scan, '__len__') else 1})"
         )
@@ -2269,7 +2271,7 @@ class GBTFITSLoad(SDFITSLoad, HistoricalBase):
                 channel=_channel,
                 vane=vane,
                 **kwargs,
-            ).timeaverage(weights=weights)
+            ).timeaverage(weights=weights, use_wcs=_channel is not None)
         else:
             refspec = ref._copy()  # Needs to be a copy since we will change it afterwards.
 
@@ -2472,6 +2474,8 @@ class GBTFITSLoad(SDFITSLoad, HistoricalBase):
         scanblock : `~dysh.spectra.scan.ScanBlock`
             ScanBlock containing one or more `~dysh.spectra.scan.PSScan`.
         """
+        from ..spectra.scan import PSScan, ScanBase, ScanBlock
+
         ScanBase._check_tscale(units)
         ScanBase._check_gain_factors(ap_eff, surface_error)
         self._check_vane_and_t_sys_args(vane, t_sys)
@@ -2706,6 +2710,8 @@ class GBTFITSLoad(SDFITSLoad, HistoricalBase):
             ScanBlock containing one or more `~dysh.spectra.scan.NodScan`.
 
         """
+        from ..spectra.scan import NodScan, ScanBase, ScanBlock
+
         ScanBase._check_tscale(units)
         ScanBase._check_gain_factors(ap_eff, surface_error)
         if units.lower() != "ta" and zenith_opacity is None and ap_eff is None:
@@ -2980,6 +2986,8 @@ class GBTFITSLoad(SDFITSLoad, HistoricalBase):
             ScanBlock containing one or more`~dysh.spectra.scan.FSScan`.
 
         """
+        from ..spectra.scan import FSScan, ScanBase, ScanBlock
+
         ScanBase._check_tscale(units)
         ScanBase._check_gain_factors(ap_eff, surface_error)
         self._check_vane_and_t_sys_args(vane, t_sys)
@@ -3267,6 +3275,8 @@ class GBTFITSLoad(SDFITSLoad, HistoricalBase):
 
         tcal_values = (snu / obs_ta.flux).value * u.K
 
+        from ..spectra.tcal import TCal
+
         tcal = TCal.from_spectrum(obs_ta, data=tcal_values, snu=snu, name=name)
 
         return tcal
@@ -3376,6 +3386,8 @@ class GBTFITSLoad(SDFITSLoad, HistoricalBase):
         data : `~dysh.spectra.scan.ScanBlock`
             A ScanBlock containing one or more `~dysh.spectra.scan.SubBeamNodScan`
         """
+        from ..spectra.scan import ScanBase, ScanBlock, SubBeamNodScan, TPScan
+
         ScanBase._check_tscale(units)
         ScanBase._check_gain_factors(ap_eff, surface_error)
         self._check_vane_and_t_sys_args(vane, t_sys)
@@ -4403,6 +4415,7 @@ class GBTFITSLoad(SDFITSLoad, HistoricalBase):
         ValueError
             If `fdnum` is not 0 or 1.
         """
+        from ..spectra.core import mean_data
 
         tp_args = {
             "scan": scan,
@@ -4495,6 +4508,7 @@ class GBTFITSLoad(SDFITSLoad, HistoricalBase):
 
         .. [1] `D. Frayer et al., "Calibration of Argus and the 4mm Receiver on the GBT" <https://ui.adsabs.harvard.edu/abs/2019nrao.reptE...1F/abstract>`_
         """
+        from ..spectra.vane import VaneSpectrum
 
         vane = self.gettp(
             scan=scan,
@@ -4579,6 +4593,8 @@ class GBTFITSLoad(SDFITSLoad, HistoricalBase):
 
         .. [1] `D. Frayer et al., "Calibration of Argus and the 4mm Receiver on the GBT" <https://ui.adsabs.harvard.edu/abs/2019nrao.reptE...1F/abstract>`_
         """
+        from ..spectra.core import mean_data
+
         t = set(self._index["OBJECT"][self._index["SCAN"] == scan])
         if len(t) > 1:
             raise TypeError(f"More than one OBJECT for scan {scan}")
@@ -4723,6 +4739,7 @@ class GBTFITSLoad(SDFITSLoad, HistoricalBase):
         Set up a `~dysh.spectra.vane.VaneSpectrum` for use in the calibration routines.
         It also handles the hacks needed to get the units correctly when using a vane.
         """
+        from ..spectra.vane import VaneSpectrum
 
         requested_units = copy.copy(units)  # Keep track of what the user wants.
         if units.lower() not in ["ta*", "flux"]:

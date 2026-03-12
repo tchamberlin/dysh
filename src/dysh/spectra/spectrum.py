@@ -1509,6 +1509,9 @@ class Spectrum(Spectrum1D, HistoricalBase):
                     )
                 except KeyError as ke:
                     raise Exception(f"Not enough info to create observer_location: {ke}")  # noqa: B904
+            from dysh import _ensure_iers
+
+            _ensure_iers()
             obsitrs = SpectralCoord._validate_coordinate(
                 attach_zero_velocities(observer_location.get_itrs(obstime=obstime))
             )
